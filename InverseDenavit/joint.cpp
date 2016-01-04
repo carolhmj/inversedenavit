@@ -90,6 +90,7 @@ Joint *Joint::getNext() const
 void Joint::setNext(Joint *value)
 {
     next = value;
+    value->setPrev(this);
 }
 
 Matrix4d Joint::getTransform()

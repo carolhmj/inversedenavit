@@ -14,7 +14,7 @@ class Joint
 {
 private:
     Vector3d x, y, z; //Eixos de coordenadas da junta
-    Vector3d origin, originNext; //Origem e origem deslocada
+    //Vector3d origin, originNext; //Origem e origem deslocada
     double length; //Comprimento do link vector
     double twist; //Link twist, em RADIANOS
     double offset; //Link offset
