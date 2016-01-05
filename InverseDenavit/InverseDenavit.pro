@@ -22,5 +22,3 @@ HEADERS  += mainwindow.h \
     figure.h
 
 FORMS    += mainwindow.ui
-
-LIBS += -lmath

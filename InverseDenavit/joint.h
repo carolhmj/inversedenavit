@@ -46,6 +46,7 @@ public:
     Joint *getNext() const;
     void setNext(Joint *value);
 
+    static bool almostEqual(double x, double y);
     //Gera a matriz de transformação que transforma entidades do sistema atual para o sistema anterior
     Matrix4d getTransform();
 };

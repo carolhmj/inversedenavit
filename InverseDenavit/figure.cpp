@@ -8,6 +8,16 @@ Vector6d Figure::getState() const
 {
     return state;
 }
+
+void Figure::draw(Matrix4d mv)
+{
+    Joint *curr = this->base; //Guarda a junta que está sendo percorrida
+    while (curr != NULL){
+        curr->draw(mv);
+        curr = curr->getNext();
+    }
+}
+
 Figure::Figure(Joint *base)
 {
     this->base = base;
@@ -17,12 +27,12 @@ Figure::Figure(Joint *base)
 Matrix4d Figure::getEndToBaseTransform()
 {
     Joint *curr = this->base; //Guarda a junta que está sendo percorrida
-    int act = 1;
+    int act = 0;
     Matrix4d T = Matrix4d::Identity();
     while (curr->getNext() != NULL){
         curr = curr->getNext();
-        cout << "Matriz da junta: " << act << ":\n" << curr->getTransform() << "\n";
         act++;
+        cout << "Matriz da junta " << act << " para a junta " << act-1 << ":\n" << curr->getTransform() << "\n";
         T = T*curr->getTransform();
     }
 
@@ -44,7 +54,9 @@ void Figure::calcStateVector()
     state(3) = atan2(M(2,1), M(2,2));
 
     //Calculando o pitch angle
-    state(4) = atan2(-M(2,0), M(2,1)*sin(state(3)) + M(2,2)*cos(state(3)));
+    double sinState = sin(state(3));
+    double cosState = Joint::almostEqual(cos(state(3)), 0.) ? 0. : cos(state(3));
+    state(4) = atan2(-M(2,0), M(2,1)*sinState + M(2,2)*cosState);
 
     //Calculando o roll angle
     state(5) = atan2(M(1,0), M(0,0));
