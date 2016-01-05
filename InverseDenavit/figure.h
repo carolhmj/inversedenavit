@@ -18,6 +18,7 @@ public:
     Matrix4d getEndToBaseTransform();
     void calcStateVector();
     Vector6d getState() const;
+    void draw(Matrix4d mv);
 };
 
 #endif // FIGURE_H

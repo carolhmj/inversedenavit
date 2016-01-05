@@ -49,6 +49,9 @@ public:
     static bool almostEqual(double x, double y);
     //Gera a matriz de transformação que transforma entidades do sistema atual para o sistema anterior
     Matrix4d getTransform();
+
+    //Desenhar a junta
+    void draw(Matrix4d mv);
 };
 
 #endif // JOINT_H
