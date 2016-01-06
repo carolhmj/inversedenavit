@@ -14,7 +14,7 @@ class Joint
 {
 private:
     Vector3d x, y, z; //Eixos de coordenadas da junta
-    //Vector3d origin, originNext; //Origem e origem deslocada
+    Vector3d origin, originNext; //Origem e origem deslocada
     double length; //Comprimento do link vector
     double twist; //Link twist, em RADIANOS
     double offset; //Link offset
@@ -25,6 +25,7 @@ public:
     //Construtores
     Joint();
     Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, double offset, double angle);
+    Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, double offset, double angle, Vector3d origin, Vector3d originNext);
 
     //Getters e setters
     Vector3d getX() const;
@@ -49,6 +50,12 @@ public:
     static bool almostEqual(double x, double y);
     //Gera a matriz de transformação que transforma entidades do sistema atual para o sistema anterior
     Matrix4d getTransform();
+
+    //Retorna a matriz de transformação de todos os pais da junta
+    Matrix4d getParentMatrix();
+
+    //Retorna a matriz de transformação de todos os filhos da junta
+    Matrix4d getChildMatrix();
 
     //Desenhar a junta
     void draw(Matrix4d mv);

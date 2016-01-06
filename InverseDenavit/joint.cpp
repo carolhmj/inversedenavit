@@ -1,6 +1,7 @@
 #include "joint.h"
 #include <cmath>
 #include <GL/gl.h>
+#include <iostream>
 
 using namespace std;
 Vector3d Joint::getX() const
@@ -120,7 +121,7 @@ Matrix4d Joint::getTransform()
      * zero como deveria, problema descrito em http://stackoverflow.com/questions/1605435/cosfm-pi-2-not-returning-zero
      */
     double cosAngle = almostEqual(cos(angle), 0) ? 0. : cos(angle);
-    double cosPrev = almostEqual(cos(prevtwist), 0) ? 0. : cos(angle);
+    double cosPrev = almostEqual(cos(prevtwist), 0) ? 0. : cos(prevtwist);
     double sinAngle = sin(angle);
     double sinPrev = sin(prevtwist);
     //Vamos preencher os campos da matriz de acordo com os especificados no livro de referência, p. 44, Eq. 2.58
@@ -135,25 +136,55 @@ Matrix4d Joint::getTransform()
     return m;
 }
 
+Matrix4d Joint::getParentMatrix()
+{
+   if (this->prev == NULL) {
+       return Matrix4d::Identity();
+   }
+   return this->prev->getParentMatrix() * this->prev->getTransform();
+}
+
+Matrix4d Joint::getChildMatrix()
+{
+    if (this->next == NULL){
+        return Matrix4d::Identity();
+    }
+    return this->next->getTransform() * this->next->getChildMatrix();
+}
+
 void Joint::draw(Matrix4d mv)
 {
+    //Calcula a origem
+    Vector4d drawOrigin;
+    drawOrigin << origin, 1;
+    drawOrigin = mv*drawOrigin;
+    cout << "draw origin:\n" << drawOrigin << "\n\n";
     //Calcula o eixo x
     Vector4d drawX;
     drawX << x, 0;
     drawX = mv*drawX;
+    cout << "draw X:\n" << drawX << "\n\n";
     //Calcula o eixo y
     Vector4d drawY;
     drawY << y, 0;
     drawY = mv*drawY;
+    cout << "draw Y:\n" << drawY << "\n\n";
     //Calcula o eixo z
     Vector4d drawZ;
     drawZ << z, 0;
     drawZ = mv*drawZ;
+    cout << "draw Z:\n" << drawZ << "\n\n";
     //Desenha os eixos
     glBegin(GL_LINES);
         glColor3d(1.0,0.0,0.0);
+        glVertex3d(drawOrigin(0), drawOrigin(1), drawOrigin(2));
+        glVertex3d(drawOrigin(0)+drawX(0), drawOrigin(1)+drawX(1), drawOrigin(2)+drawX(2));
         glColor3d(0.0,1.0,0.0);
+        glVertex3d(drawOrigin(0), drawOrigin(1), drawOrigin(2));
+        glVertex3d(drawOrigin(0)+drawY(0), drawOrigin(1)+drawY(1), drawOrigin(2)+drawY(2));
         glColor3d(0.0,0.0,1.0);
+        glVertex3d(drawOrigin(0), drawOrigin(1), drawOrigin(2));
+        glVertex3d(drawOrigin(0)+drawZ(0), drawOrigin(1)+drawZ(1), drawOrigin(2)+drawZ(2));
     glEnd();
 
 }
@@ -172,5 +203,18 @@ Joint::Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, do
     this->twist = twist;
     this->offset = offset;
     this->angle = angle;
+}
+
+Joint::Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, double offset, double angle, Vector3d origin, Vector3d originNext)
+{
+    this->x = x;
+    this->y = y;
+    this->z = z;
+    this->length = length;
+    this->twist = twist;
+    this->offset = offset;
+    this->angle = angle;
+    this->origin = origin;
+    this->originNext = originNext;
 }
 
