@@ -137,3 +137,75 @@ Vector6d Figure::getDerivativeStateVector(Joint *j)
     s(5) = (1/(1+pow(q/p, 2.0)))*((1/p)*dq - (q/pow(p,2.0))*dp);
     return s;
 }
+
+//Computa a Jacobiana do vetor de estados
+MatrixXd Figure::getJacobian()
+{
+    MatrixXd J;
+    Joint *curr = this->base; //Guarda a junta que está sendo percorrida
+    int n = 0;
+    //Percorre as juntas da estrutura e adiciona as derivadas do vetor de estado como colunas da jacobiana
+    while (curr != NULL){
+        J.col(n) = getDerivativeStateVector(curr);
+        n++;
+        curr = curr->getNext();
+    }
+    return J;
+}
+
+//Retorna a inversa (ou pseudo-inversa) da matriz M
+MatrixXd Figure::getInverse(MatrixXd M)
+{
+    //Caso invertível
+    if (M.rows() > M.cols()) {
+        return M.inverse();
+    }
+    //Caso over-determined
+    if (M.rows() > M.cols()) {
+        return (M.transpose() * M).inverse() * M.transpose();
+    }
+    //Caso under-determined
+    if (M.rows() < M.cols()) {
+        return M.transpose() * (M * M.transpose()).inverse();
+    }
+}
+
+void Figure::setParams(VectorXd params)
+{
+    Joint *curr = this->base; //Guarda a junta que está sendo percorrida
+    int n = 0;
+    //Percorre as juntas da estrutura e atualiza os parâmetros da junta
+    while (curr != NULL){
+        curr->setAngle(params(n));
+        n++;
+        curr = curr->getNext();
+    }
+}
+
+void Figure::iterationScheme(Vector6d target, double tolerance)
+{
+    Joint *curr = this->base; //Guarda a junta que está sendo percorrida
+    int n = 0;
+    VectorXd currParams;
+    //Percorre as juntas da estrutura e adiciona os parâmetros da junta em um vetor
+    while (curr != NULL){
+        currParams(n) = curr->getAngle();
+        n++;
+        curr = curr->getNext();
+    }
+
+    while (abs((state-target).norm()) > tolerance){
+        VectorXd newParams = computeJointParameters(currParams, state, target);
+        setParams(newParams);
+        calcStateVector();
+    }
+}
+
+/*
+ * Função que representa um passo no esquema de iteração, calculando os novos parâmetros da junta
+ * de acordo com a Eq. 3.38, p. 54
+ */
+VectorXd Figure::computeJointParameters(VectorXd parameters, Vector6d current, Vector6d target)
+{
+    return parameters - (getInverse(getJacobian()))*(current-target);
+}

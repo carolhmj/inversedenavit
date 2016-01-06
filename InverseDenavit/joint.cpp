@@ -158,22 +158,22 @@ void Joint::draw(Matrix4d mv)
     Vector4d drawOrigin;
     drawOrigin << origin, 1;
     drawOrigin = mv*drawOrigin;
-    cout << "draw origin:\n" << drawOrigin << "\n\n";
+    //cout << "draw origin:\n" << drawOrigin << "\n\n";
     //Calcula o eixo x
     Vector4d drawX;
     drawX << x, 0;
     drawX = mv*drawX;
-    cout << "draw X:\n" << drawX << "\n\n";
+    //cout << "draw X:\n" << drawX << "\n\n";
     //Calcula o eixo y
     Vector4d drawY;
     drawY << y, 0;
     drawY = mv*drawY;
-    cout << "draw Y:\n" << drawY << "\n\n";
+    //cout << "draw Y:\n" << drawY << "\n\n";
     //Calcula o eixo z
     Vector4d drawZ;
     drawZ << z, 0;
     drawZ = mv*drawZ;
-    cout << "draw Z:\n" << drawZ << "\n\n";
+    //cout << "draw Z:\n" << drawZ << "\n\n";
     //Desenha os eixos
     glBegin(GL_LINES);
         glColor3d(1.0,0.0,0.0);

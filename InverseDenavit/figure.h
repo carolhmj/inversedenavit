@@ -20,6 +20,11 @@ public:
     void calcStateVector();
     Vector6d getState() const;
     Vector6d getDerivativeStateVector(Joint *j);
+    MatrixXd getJacobian();
+    MatrixXd getInverse(MatrixXd M);
+    void setParams(VectorXd params);
+    void iterationScheme(Vector6d target, double tolerance);
+    VectorXd computeJointParameters(VectorXd parameters, Vector6d current, Vector6d target);
     void draw(Matrix4d mv);
 };
 
