@@ -16,11 +16,13 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     joint.cpp \
     figure.cpp \
-    glwidget.cpp
+    glwidget.cpp \
+    calculations.cpp
 
 HEADERS  += mainwindow.h \
     joint.h \
     figure.h \
-    glwidget.h
+    glwidget.h \
+    calculations.h
 
 FORMS    += mainwindow.ui

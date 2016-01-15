@@ -15,6 +15,7 @@ public:
     void paintGL();
     Matrix4d perspectiveMatrix(double fov, double far, double near);
     Matrix4d ortographicMatrix(double far, double near, double left, double right, double top, double bottom);
+    Matrix4d lookAtMatrix(Vector3d pos, Vector3d target, Vector3d up);
 };
 
 #endif // GLWIDGET_H

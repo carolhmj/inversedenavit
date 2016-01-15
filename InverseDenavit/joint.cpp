@@ -125,10 +125,6 @@ Matrix4d Joint::getTransform()
     double sinAngle = sin(angle);
     double sinPrev = sin(prevtwist);
     //Vamos preencher os campos da matriz de acordo com os especificados no livro de referência, p. 44, Eq. 2.58
-//    m <<          cos(angle)      ,        -sin(angle)       ,        0       ,      prevlength       ,
-//         cos(prevtwist)*sin(angle), cos(prevtwist)*cos(angle), -sin(prevtwist), -offset*sin(prevtwist),
-//         sin(prevtwist)*sin(angle), sin(prevtwist)*cos(angle),  cos(prevtwist),  offset*cos(prevtwist),
-//                      0           ,             0            ,        0       ,          1            ;
     m <<     cosAngle    ,    -sinAngle    ,     0   ,    prevlength  ,
          cosPrev*sinAngle, cosPrev*cosAngle, -sinPrev, -offset*sinPrev,
          sinPrev*sinAngle, sinPrev*cosAngle,  cosPrev,  offset*cosPrev,
@@ -189,6 +185,26 @@ void Joint::draw(Matrix4d mv)
 
 }
 
+
+Vector3d Joint::getOrigin() const
+{
+    return origin;
+}
+
+void Joint::setOrigin(const Vector3d &value)
+{
+    origin = value;
+}
+
+Vector3d Joint::getOriginNext() const
+{
+    return originNext;
+}
+
+void Joint::setOriginNext(const Vector3d &value)
+{
+    originNext = value;
+}
 Joint::Joint()
 {
 

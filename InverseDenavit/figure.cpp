@@ -71,6 +71,7 @@ Vector6d Figure::getDerivativeStateVector(Joint *j)
     Vector6d s;
     Matrix4d P = j->getParentMatrix(), C = j->getChildMatrix();
     double cosAngle = Joint::almostEqual(cos(j->getAngle()), 0.0) ? 0.0 : cos(j->getAngle());
+    //Ele precisa do twist anterior, logo a junta base não tem derivada?
     double cosPrev = Joint::almostEqual(cos(j->getPrev()->getTwist()), 0.0) ? 0.0 : cos(j->getPrev()->getTwist());
     double sinAngle =  sin(j->getAngle());
     double sinPrev = sin(j->getPrev()->getTwist());

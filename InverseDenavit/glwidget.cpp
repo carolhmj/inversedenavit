@@ -13,15 +13,15 @@ void GLWidget::initializeGL(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0, 0.0, 0.0, 0.0);
 
-    Vector3d i = Vector3d(1,0,0), j = Vector3d(0,1,0), k = Vector3d(0,0,1), m = Vector3d(-1,0,0);
+    Vector3d i = Vector3d(1,0,0), j = Vector3d(0,1,0), k = Vector3d(0,0,1), l = Vector3d(0,M_SQRT1_2,M_SQRT1_2), m = Vector3d(M_SQRT1_2,M_SQRT1_2,0), n = Vector3d(-M_SQRT1_2,M_SQRT1_2,0);
     //Ordem dos parâmetros é: x, y, z, length, twist, offset, angle, origin, originNext
-    Joint* l0 = new Joint(i, Vector3d(0,0,-1), j, 0.0, 0.0, 0.0, 0.0, Vector3d(0,0,0), Vector3d(0,0,0));
-    Joint* l1 = new Joint(i, Vector3d(0,0,-1), j, 0.0, M_PI_2, 0.0, 0.0, Vector3d(0,0,0), Vector3d(0,0,0));
-    Joint* l2 = new Joint(j, m, k, 1.0, 0.0, 0.0, M_PI_2, Vector3d(0,0,0), Vector3d(0,1,0));
-    Joint* l3 = new Joint(j, m, k, 1.0, 0.0, 0.0, 0.0, Vector3d(0,1,0), Vector3d(0,2,0));
-    Joint *l4 = new Joint(j, m, k, 1.0, 0.0, 0.0, 0.0, Vector3d(0,2,0), Vector3d(0,3,0));
-    Joint *l5 = new Joint(j, m, k, 1.0, 0.0, 0.0, 0.0, Vector3d(0,3,0), Vector3d(0,4,0));
-    Joint *l6 = new Joint(j, m, k, 0.0, 0.0, 0.0, 0.0, Vector3d(0,4,0), Vector3d(0,4,0));
+    Joint* l0 = new Joint(i, j, k, 0., -M_PI_4, 0., 0., Vector3d(0,0,0), Vector3d(0,0,0));
+    Joint* l1 = new Joint(i, Vector3d(0,M_SQRT1_2,-M_SQRT1_2), l, 0., M_PI_4, 0., 0., Vector3d(0,0,0), Vector3d(0,0,0));
+    Joint* l2 = new Joint(m, n, k, 1., 0., 0., M_PI_4, Vector3d(0,0,0), m);
+    Joint* l3 = new Joint(m, n, k, 1., 0., 0., 0., m, 2*m);
+    Joint *l4 = new Joint(m, n, k, 1., 0., 0., 0., 2*m, 3*m);
+    Joint *l5 = new Joint(m, n, k, 1., 0., 0., 0., 3*m, 4*m);
+    Joint *l6 = new Joint(m, n, k, 1., 0., 0., 0., 4*m, 5*m);
     l0->setNext(l1);
     l1->setNext(l2);
     l2->setNext(l3);
@@ -30,9 +30,10 @@ void GLWidget::initializeGL(){
     l5->setNext(l6);
 
     Figure* f = new Figure(l0);
-    cout << "matriz transform: \n" << f->getEndToBaseTransform() << "\n";
+    cout << "matriz transform: \n" << f->getEndToBaseTransform() << "\n\n\n";
+    cout << "calculando: \n" << f->getEndToBaseTransform()*Vector4d(1,0,0,1) << "\n\n\n";
     f->calcStateVector();
-    cout << "state vector: \n" << f->getState() << "\n";
+    cout << "state vector: \n" << f->getState() << "\n\n\n";
 
     obj = f;
 }
@@ -51,6 +52,9 @@ void GLWidget::paintGL(){
     glClearColor(0.0, 0.0, 0.0, 0.0);
 
     obj->draw(ortographicMatrix(-6,6,-6,6,6,-6));
+//    Vector6d ns = obj->getState();
+//    ns = ns + Vector6d(0., 0., 0.2, 0., 0., 0.);
+//    obj->iterationScheme(ns, 0.0001);
 }
 
 Matrix4d GLWidget::perspectiveMatrix(double fov, double far, double near)
@@ -71,6 +75,18 @@ Matrix4d GLWidget::ortographicMatrix(double far, double near, double left, doubl
                       0            ,        2/(top-bottom)     ,             0         , 0,
                       0            ,            0              ,       -2/(far-near)   , 0,
          -(right+left)/(right-left), -(top+bottom)/(top-bottom), -(far+near)/(far-near), 1;
-    cout << "ortho matrix: \n" << M << "\n\n";
     return M;
+}
+
+Matrix4d GLWidget::lookAtMatrix(Vector3d pos, Vector3d target, Vector3d up)
+{
+    Vector3d z = pos-target;
+    z.normalize();
+    Vector3d x = up.cross(z);
+    x.normalize();
+    Vector3d y = z.cross(x);
+    y.normalize();
+
+    Matrix4d R;
+    //R << x;
 }

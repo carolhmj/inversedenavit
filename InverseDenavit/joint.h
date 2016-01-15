@@ -46,6 +46,10 @@ public:
     void setPrev(Joint *value);
     Joint *getNext() const;
     void setNext(Joint *value);
+    Vector3d getOrigin() const;
+    void setOrigin(const Vector3d &value);
+    Vector3d getOriginNext() const;
+    void setOriginNext(const Vector3d &value);
 
     static bool almostEqual(double x, double y);
     //Gera a matriz de transformação que transforma entidades do sistema atual para o sistema anterior
@@ -59,6 +63,7 @@ public:
 
     //Desenhar a junta
     void draw(Matrix4d mv);
+
 };
 
 #endif // JOINT_H
