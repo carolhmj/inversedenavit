@@ -172,13 +172,13 @@ void Joint::draw(Matrix4d mv)
     //cout << "draw Z:\n" << drawZ << "\n\n";
     //Desenha os eixos
     glBegin(GL_LINES);
-        glColor3d(1.0,0.0,0.0);
+        glColor3d(1.0,0.0,0.0); //Eixo x é vermelho
         glVertex3d(drawOrigin(0), drawOrigin(1), drawOrigin(2));
         glVertex3d(drawOrigin(0)+drawX(0), drawOrigin(1)+drawX(1), drawOrigin(2)+drawX(2));
-        glColor3d(0.0,1.0,0.0);
+        glColor3d(0.0,1.0,0.0); //Eixo y é verde
         glVertex3d(drawOrigin(0), drawOrigin(1), drawOrigin(2));
         glVertex3d(drawOrigin(0)+drawY(0), drawOrigin(1)+drawY(1), drawOrigin(2)+drawY(2));
-        glColor3d(0.0,0.0,1.0);
+        glColor3d(0.0,0.0,1.0); //Eixo z é azul
         glVertex3d(drawOrigin(0), drawOrigin(1), drawOrigin(2));
         glVertex3d(drawOrigin(0)+drawZ(0), drawOrigin(1)+drawZ(1), drawOrigin(2)+drawZ(2));
     glEnd();
