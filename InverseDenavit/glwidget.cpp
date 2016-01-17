@@ -12,7 +12,17 @@ GLWidget::GLWidget(QWidget *parent) :
 void GLWidget::initializeGL(){
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
     glClearColor(0.0, 0.0, 0.0, 0.0);
+
+    connect(&timer, SIGNAL(timeout()), this, SLOT(updateGL()));
+    timer.start(1);
+
+    trackball(curquat, 0.0, 0.0, 0.0, 0.0);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixd(ortographicMatrix(-10000, 10000, -10,10, 10, -10).data());
 
     Vector3d i = Vector3d(1,0,0), j = Vector3d(0,1,0), k = Vector3d(0,0,1), l = Vector3d(0,M_SQRT1_2,M_SQRT1_2), m = Vector3d(M_SQRT1_2,M_SQRT1_2,0), n = Vector3d(-M_SQRT1_2,M_SQRT1_2,0);
     //Ordem dos parâmetros é: x, y, z, length, twist, offset, angle, origin, originNext
@@ -35,9 +45,12 @@ void GLWidget::initializeGL(){
     Figure* f = new Figure(l0);
 //    cout << "matriz transform: \n" << f->getEndToBaseTransform() << "\n\n\n";
 //    cout << "calculando: \n" << f->getEndToBaseTransform()*Vector4d(1,0,0,1) << "\n\n\n";
-    f->calcStateVector();
 //    cout << "state vector: \n" << f->getState() << "\n\n\n";
 
+//    cout << "joint 2\n";
+//    cout << "parent transform\n" << f->getBase()->getNext()->getNext()->getParentMatrix() << endl;
+//    cout << "child transform\n" << f->getBase()->getNext()->getNext()->getChildMatrix() << endl;
+//    cout << "jacobian\n" << f->getJacobian() << endl;
     obj = f;
 }
 
@@ -54,7 +67,13 @@ void GLWidget::paintGL(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0, 0.0, 0.0, 0.0);
 
-    obj->draw(ortographicMatrix(-6,6,-6,6,6,-6));
+    float m[4][4];
+
+    build_rotmatrix(m, curquat);
+
+    Matrix4f viewMF = Map<Matrix4f>(m[0]);
+    Matrix4d viewMD = viewMF.cast<double>();
+    obj->draw(viewMD);
 }
 
 Matrix4d GLWidget::perspectiveMatrix(double fov, double far, double near)
@@ -66,6 +85,24 @@ Matrix4d GLWidget::perspectiveMatrix(double fov, double far, double near)
          0, 0,     -far/(far-near)   , -1,
          0, 0, -(far*near)/(far-near),  0;
     return M;
+}
+
+Matrix4d GLWidget::perspectiveMatrix(double fovY, double aspect, double near, double far)
+{
+  float theta = fovY*0.5;
+  float range = far - near;
+  float invtan = 1./tan(theta);
+
+  Matrix4d mProjectionMatrix;
+
+  mProjectionMatrix(0,0) = invtan / aspect;
+  mProjectionMatrix(1,1) = invtan;
+  mProjectionMatrix(2,2) = -(near + far) / range;
+  mProjectionMatrix(3,2) = -1;
+  mProjectionMatrix(2,3) = -2 * near * far / range;
+  mProjectionMatrix(3,3) = 0;
+
+  return mProjectionMatrix.transpose();
 }
 
 Matrix4d GLWidget::ortographicMatrix(double far, double near, double left, double right, double top, double bottom)
@@ -95,11 +132,48 @@ void GLWidget::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton){
         Vector6d ns;
-        double ang = 25;
-        AngleAxisd rot(ang * (M_PI / 180.0), Vector3d::UnitZ());
-        Vector3d p = rot.toRotationMatrix() * 5*Vector3d::UnitX();
-        ns << p, 0, 0, ang * (M_PI / 180.0);
+
+        double angX = countang++ * 2;
+        AngleAxisd rotX(angX * (M_PI / 180.0), Vector3d::UnitX());
+        Vector3d p = rotX.toRotationMatrix() * 5*Vector3d::UnitX();
+
+        double angY = 0;//countang++ * 2;
+        AngleAxisd rotY(angY * (M_PI / 180.0), Vector3d::UnitY());
+        p = rotY.toRotationMatrix() * p;
+
+        double angZ = 45; //- countang++*2;
+        AngleAxisd rotZ(angZ * (M_PI / 180.0), Vector3d::UnitZ());
+        p = rotZ.toRotationMatrix() * p;
+
+        //ns << p, angX * (M_PI / 180.0), angY * (M_PI / 180.0), angZ * (M_PI / 180.0);
+        ns << 0, 0, 0, 0, 0, 0;
         obj->iterationScheme(ns, 0.0001, 2);
         updateGL();
     }
+
+    if (event->button() == Qt::RightButton)
+    {
+        beginx = event->x();
+        beginy = event->y();
+    }
+
+    if (event->button() == Qt::MiddleButton) {
+        trackball(curquat, 0.0, 0.0, 0.0, 0.0);
+    }
+}
+
+void GLWidget::mouseMoveEvent(QMouseEvent *event){
+    float width = size().width();
+    float height = size().height();
+
+    trackball(lastquat,
+      (2.0 * beginx - width) / width,
+      (height - 2.0 * beginy) / height,
+      (2.0 * event->x() - width) / width,
+      (height - 2.0 * event->y()) / height
+    );
+    beginx = event->x();
+    beginy = event->y();
+    add_quats(lastquat, curquat, curquat);
+    updateGL();
 }

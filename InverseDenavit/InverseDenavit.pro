@@ -17,12 +17,14 @@ SOURCES += main.cpp\
     joint.cpp \
     figure.cpp \
     glwidget.cpp \
-    calculations.cpp
+    calculations.cpp \
+    trackball.cpp
 
 HEADERS  += mainwindow.h \
     joint.h \
     figure.h \
     glwidget.h \
-    calculations.h
+    calculations.h \
+    trackball.h
 
 FORMS    += mainwindow.ui

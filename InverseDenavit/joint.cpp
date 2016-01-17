@@ -150,39 +150,54 @@ Matrix4d Joint::getChildMatrix()
 
 void Joint::draw(Matrix4d mv)
 {
-    //Calcula a origem
-    Vector4d drawOrigin;
-    drawOrigin << origin, 1;
-    drawOrigin = mv*drawOrigin;
-    //cout << "draw origin:\n" << drawOrigin << "\n\n";
-    //Calcula o eixo x
-    Vector4d drawX;
-    drawX << x, 0;
-    drawX = mv*drawX;
-    //cout << "draw X:\n" << drawX << "\n\n";
-    //Calcula o eixo y
-    Vector4d drawY;
-    drawY << y, 0;
-    drawY = mv*drawY;
-    //cout << "draw Y:\n" << drawY << "\n\n";
-    //Calcula o eixo z
-    Vector4d drawZ;
-    drawZ << z, 0;
-    drawZ = mv*drawZ;
-    //cout << "draw Z:\n" << drawZ << "\n\n";
     //Desenha os eixos
-    glBegin(GL_LINES);
-        glColor3d(1.0,0.0,0.0); //Eixo x é vermelho
-        glVertex3d(drawOrigin(0), drawOrigin(1), drawOrigin(2));
-        glVertex3d(drawOrigin(0)+drawX(0), drawOrigin(1)+drawX(1), drawOrigin(2)+drawX(2));
-        glColor3d(0.0,1.0,0.0); //Eixo y é verde
-        glVertex3d(drawOrigin(0), drawOrigin(1), drawOrigin(2));
-        glVertex3d(drawOrigin(0)+drawY(0), drawOrigin(1)+drawY(1), drawOrigin(2)+drawY(2));
-        glColor3d(0.0,0.0,1.0); //Eixo z é azul
-        glVertex3d(drawOrigin(0), drawOrigin(1), drawOrigin(2));
-        glVertex3d(drawOrigin(0)+drawZ(0), drawOrigin(1)+drawZ(1), drawOrigin(2)+drawZ(2));
-    glEnd();
+    drawPyramid(origin, originNext, 0.4, mv);
 
+}
+
+void Joint::drawPyramid(Vector3d bottom, Vector3d top, double base, Matrix4d mv)
+{
+//    Vector3d v1 = top;
+//    Vector3d v2(bottom(0)+base/2, bottom(1), bottom(2)+base/2);
+//    Vector3d v3(bottom(0)+base/2, bottom(1), bottom(2)-base/2);
+//    Vector3d v4(bottom(0)-base/2, bottom(1), bottom(2)-base/2);
+//    Vector3d v5(bottom(0)-base/2, bottom(1), bottom(2)+base/2);
+
+//    glBegin(GL_TRIANGLES);
+//        glVertex3f();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixd(mv.data());
+
+    const GLdouble pyramidVertices[] = {
+        top(0), top(1), top(2),
+        bottom(0)+base/2, bottom(1), bottom(2)+base/2,
+        bottom(0)+base/2, bottom(1), bottom(2)-base/2,
+        bottom(0)-base/2, bottom(1), bottom(2)-base/2,
+        bottom(0)-base/2, bottom(1), bottom(2)+base/2,
+    };
+
+    const GLdouble pyramidColors[] = {
+        color(0), color(1), color(2),
+        color(0), color(1), color(2),
+        color(0), color(1), color(2),
+        color(0), color(1), color(2),
+        color(0), color(1), color(2),
+    };
+
+    unsigned int index[] = {
+        0,2,1,
+        0,3,2,
+        0,4,3,
+        0,1,4,
+        3,1,4,
+        1,3,2
+    };
+    glPolygonMode(GL_FRONT, GL_LINE);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glColorPointer(3, GL_DOUBLE, 0, pyramidColors);
+    glVertexPointer(3, GL_DOUBLE, 0, pyramidVertices);
+    glDrawElements(GL_TRIANGLE_FAN, 18, GL_UNSIGNED_INT, index);
 }
 
 
@@ -232,5 +247,8 @@ Joint::Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, do
     this->angle = angle;
     this->origin = origin;
     this->originNext = originNext;
+
+    Vector3d rand = Vector3d::Random();
+    color = rand/rand.maxCoeff();
 }
 

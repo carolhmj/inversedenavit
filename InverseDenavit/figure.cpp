@@ -1,8 +1,6 @@
 #include "figure.h"
 #include <iostream>
 #include <cmath>
-#include <eigen3/Eigen/LU>
-#include <eigen3/Eigen/SVD>
 #include "calculations.h"
 
 using namespace std;
@@ -29,6 +27,7 @@ Joint *Figure::getBase() const
 Figure::Figure(Joint *base)
 {
     this->base = base;
+    calcStateVector();
 }
 
 int Figure::getNumJoints()
@@ -39,7 +38,7 @@ int Figure::getNumJoints()
         n++;
         curr = curr->getNext();
     }
-    cout << "num of joints " << n << endl;
+    //cout << "num of joints " << n << endl;
     return n;
 }
 
@@ -121,6 +120,7 @@ Vector6d Figure::getDerivativeStateVector(Joint *j)
     double dy = cosAngle * (-P(2,0)*C(1,2) + P(2,1)*C(0,2)*cosPrev + P(2,2)*C(0,2)*sinPrev) -
                 sinAngle * (P(2,0)*C(0,2) + P(2,1)*C(1,2)*cosPrev + P(2,2)*C(1,2)*sinPrev);
 
+    //cout << "x: " << x  << " y: " << y << " dx: " << dx << " dy: " << dy << endl;
 
     s(3) = (1/(1+pow(x/y,2.0)))*((1/y)*dx - (x/pow(y,2.0))*dy);
 
@@ -234,7 +234,9 @@ void Figure::recalculateAxis()
         AngleAxisd rot(curr->getAngle(), curr->getZ());
         tmpX = curr->getX();
         //curr->setX(rot.toRotationMatrix()*prevX);
+        curr->setOrigin(curr->getPrev()->getOriginNext());
         curr->setX(rot.toRotationMatrix()*curr->getPrev()->getX());
+        curr->setOriginNext(curr->getOrigin() + curr->getX());
         prevX = tmpX;
         //O eixo y1 é normalized(z1 cross x1)
         curr->setY(crossNormalize(curr->getZ(), curr->getX()));
@@ -263,12 +265,12 @@ void Figure::iterationScheme(Vector6d target, double tolerance, int maxSteps)
     flush(cout);
     int count = 1;
     VectorXd newParams(n-1);
-    //cout << "absolute difference: " << abs((state-target).norm()) << endl;
-    double normDiffPosition = (Vector3d(state(0),state(1),state(2)) - Vector3d(target(0),target(1),target(2))).norm();
-    double diffAngles = (state(3)-target(3))+(state(4)-target(4))+(state(5)-target(5))/3.;
-    double diffMetric = max(normDiffPosition, diffAngles);
-    while (diffMetric > tolerance && count < maxSteps){
+//    double normDiffPosition = (Vector3d(state(0),state(1),state(2)) - Vector3d(target(0),target(1),target(2))).norm();
+//    double diffAngles = (state(3)-target(3))+(state(4)-target(4))+(state(5)-target(5))/3.;
+//    double diffMetric = max(normDiffPosition, diffAngles);
+    while (abs((state-target).norm()) > tolerance && count < maxSteps){
         cout << "Iteration " << count << endl;
+        cout << "Absolute difference: " << abs((state-target).norm()) << endl;
         flush(cout);
         newParams = computeJointParameters(currParams, state, target);
         cout << "New joint parameters:\n" << newParams << endl;

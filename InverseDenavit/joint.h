@@ -21,6 +21,8 @@ private:
     double angle; //Joint angle, em RADIANOS
     Joint* prev = NULL; //Junta anterior
     Joint* next = NULL; //Junta posterior
+
+    Vector3d color; //Cor de renderização
 public:
     //Construtores
     Joint();
@@ -62,8 +64,10 @@ public:
     Matrix4d getChildMatrix();
 
     //Desenhar a junta
-    void draw(Matrix4d mv);
+    void draw(Matrix4d mv = Matrix4d::Identity());
 
+    //Desenha uma pirâmide com base (xb,yb,zb) e topo (xt,yt,zt), base b e cor c
+    void drawPyramid(Vector3d bottom, Vector3d top, double base, Matrix4d mv = Matrix4d::Identity());
 };
 
 #endif // JOINT_H
