@@ -19,6 +19,7 @@ private:
     float verticalIncrease, horizontalIncrease;
     Matrix4d mvMatrix;
     int countang = 1;
+    Vector6d stateDesired;
 
 public:
     explicit GLWidget(QWidget *parent = 0);
@@ -31,6 +32,8 @@ public:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
     Matrix4d perspectiveMatrix(double fovY, double aspect, double near, double far);
+    void drawCube(Vector3d center, double size, double color[], Matrix4d mv = Matrix4d::Identity());
+    void drawTarget(Vector6d state, Matrix4d mv = Matrix4d::Identity());
 };
 
 #endif // GLWIDGET_H

@@ -197,7 +197,7 @@ void Joint::drawPyramid(Vector3d bottom, Vector3d top, double base, Matrix4d mv)
     glEnableClientState(GL_VERTEX_ARRAY);
     glColorPointer(3, GL_DOUBLE, 0, pyramidColors);
     glVertexPointer(3, GL_DOUBLE, 0, pyramidVertices);
-    glDrawElements(GL_TRIANGLE_FAN, 18, GL_UNSIGNED_INT, index);
+    glDrawElements(GL_TRIANGLES, 18, GL_UNSIGNED_INT, index);
 }
 
 
@@ -250,5 +250,19 @@ Joint::Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, do
 
     Vector3d rand = Vector3d::Random();
     color = rand/rand.maxCoeff();
+}
+
+Joint::Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, double offset, double angle, Vector3d origin, Vector3d originNext, Vector3d color)
+{
+    this->x = x;
+    this->y = y;
+    this->z = z;
+    this->length = length;
+    this->twist = twist;
+    this->offset = offset;
+    this->angle = angle;
+    this->origin = origin;
+    this->originNext = originNext;
+    this->color = color;
 }
 

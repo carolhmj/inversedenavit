@@ -1,6 +1,7 @@
 #include "glwidget.h"
 #include <iostream>
 #include <QMouseEvent>
+#include <GL/gl.h>
 
 using namespace std;
 GLWidget::GLWidget(QWidget *parent) :
@@ -21,19 +22,30 @@ void GLWidget::initializeGL(){
 
     trackball(curquat, 0.0, 0.0, 0.0, 0.0);
 
+    stateDesired << 0.0,0.0,0.0,0.0,0.0,0.0;
+    cout << "state desired:\n" << stateDesired << endl;
+
     glMatrixMode(GL_PROJECTION);
     glLoadMatrixd(ortographicMatrix(-10000, 10000, -10,10, 10, -10).data());
 
     Vector3d i = Vector3d(1,0,0), j = Vector3d(0,1,0), k = Vector3d(0,0,1), l = Vector3d(0,M_SQRT1_2,M_SQRT1_2), m = Vector3d(M_SQRT1_2,M_SQRT1_2,0), n = Vector3d(-M_SQRT1_2,M_SQRT1_2,0);
-    //Ordem dos parâmetros é: x, y, z, length, twist, offset, angle, origin, originNext
-    Joint* l0 = new Joint(i, j, k, 0., -M_PI_4, 0., 0., Vector3d(0,0,0), Vector3d(0,0,0));
-    Joint* l1 = new Joint(i, Vector3d(0,M_SQRT1_2,-M_SQRT1_2), l, 0., M_PI_4, 0., 0., Vector3d(0,0,0), Vector3d(0,0,0));
-    Joint* l2 = new Joint(m, n, k, 1., 0., 0., M_PI_4, Vector3d(0,0,0), m);
-    Joint* l3 = new Joint(m, n, k, 1., 0., 0., 0., m, 2*m);
-    Joint *l4 = new Joint(m, n, k, 1., 0., 0., 0., 2*m, 3*m);
-    Joint *l5 = new Joint(m, n, k, 1., 0., 0., 0., 3*m, 4*m);
-    Joint *l6 = new Joint(m, n, k, 1., 0., 0., 0., 4*m, 5*m);
-    Joint *l7 = new Joint(m, n, k, 1., 0., 0., 0., 5*m, 6*m);
+    //Ordem dos parâmetros é: x, y, z, length, twist, offset, angle, origin, originNext, color
+    //Branco
+    Joint* l0 = new Joint(i, j, k, 0., -M_PI_4, 0., 0., Vector3d(0,0,0), Vector3d(0,0,0), Vector3d(1,1,1));
+    //Amarelo
+    Joint* l1 = new Joint(i, Vector3d(0,M_SQRT1_2,-M_SQRT1_2), l, 0., M_PI_4, 0., 0., Vector3d(0,0,0), Vector3d(0,0,0), Vector3d(1,1,0));
+    //Turquesa
+    Joint* l2 = new Joint(m, n, k, 1., 0., 0., M_PI_4, Vector3d(0,0,0), m, Vector3d(0,1,1));
+    //Roxo
+    Joint* l3 = new Joint(m, n, k, 1., 0., 0., 0., m, 2*m, Vector3d(1,0,1));
+    //Verde
+    Joint *l4 = new Joint(m, n, k, 1., 0., 0., 0., 2*m, 3*m, Vector3d(0,1,0));
+    //Azul
+    Joint *l5 = new Joint(m, n, k, 1., 0., 0., 0., 3*m, 4*m, Vector3d(0,0,1));
+    //Cinza
+    Joint *l6 = new Joint(m, n, k, 1., 0., 0., 0., 4*m, 5*m, Vector3d(0.5,0.5,1));
+    //Vermelho
+    Joint *l7 = new Joint(m, n, k, 1., 0., 0., 0., 5*m, 6*m, Vector3d(1,0,0));
     l0->setNext(l1);
     l1->setNext(l2);
     l2->setNext(l3);
@@ -74,6 +86,10 @@ void GLWidget::paintGL(){
     Matrix4f viewMF = Map<Matrix4f>(m[0]);
     Matrix4d viewMD = viewMF.cast<double>();
     obj->draw(viewMD);
+    double colors[3] = {0.5,0.,0.};
+//    Vector3d pos(stateDesired(0),stateDesired(1),stateDesired(2));
+//    drawCube(pos, 0.4, colors, viewMD);
+//    drawTarget(stateDesired, viewMD);
 }
 
 Matrix4d GLWidget::perspectiveMatrix(double fov, double far, double near)
@@ -105,6 +121,83 @@ Matrix4d GLWidget::perspectiveMatrix(double fovY, double aspect, double near, do
   return mProjectionMatrix.transpose();
 }
 
+void GLWidget::drawCube(Vector3d center, double size, double color[], Matrix4d mv)
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixd(mv.data());
+
+    double s = size/2;
+    GLdouble vertices[] = {
+        center(0)+s, center(1)+s, center(2)+s,
+        center(0)+s, center(1)+s, center(2)-s,
+        center(0)-s, center(1)+s, center(2)-s,
+        center(0)-s, center(1)+s, center(2)+s,
+        center(0)-s, center(1)-s, center(2)+s,
+        center(0)+s, center(1)-s, center(2)+s,
+        center(0)+s, center(1)-s, center(2)-s,
+        center(0)-s, center(1)-s, center(2)-s
+    };
+
+    GLdouble colors[] = {
+       color[0], color[1], color[2],
+       color[0], color[1], color[2],
+       color[0], color[1], color[2],
+       color[0], color[1], color[2],
+       color[0], color[1], color[2],
+       color[0], color[1], color[2],
+       color[0], color[1], color[2],
+       color[0], color[1], color[2],
+    };
+
+    unsigned int indices[] = {
+        1,2,3,4,
+        5,6,7,8,
+        1,6,7,2,
+        2,7,8,3,
+        3,8,5,4,
+        4,5,6,1
+    };
+
+    glPolygonMode(GL_FRONT, GL_LINE);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glColorPointer(3, GL_DOUBLE, 0, colors);
+    glVertexPointer(3, GL_DOUBLE, 0, vertices);
+    glDrawElements(GL_QUADS, 24, GL_UNSIGNED_INT, indices);
+}
+
+void GLWidget::drawTarget(Vector6d state, Matrix4d mv)
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixd(mv.data());
+
+    glPointSize(5);
+    glBegin(GL_POINT);
+        glColor3d(1,1,1);
+        glVertex3d(state(0), state(1), state(2));
+    glEnd();
+
+    Matrix3d stateRotation;
+    stateRotation = AngleAxisd(state(3), Vector3d::UnitX()) * AngleAxisd(state(4), Vector3d::UnitY()) * AngleAxisd(state(5), Vector3d::UnitZ());
+
+    Vector3d x = stateRotation * obj->getBase()->getX();
+    Vector3d y = stateRotation * obj->getBase()->getY();
+    Vector3d z = stateRotation * obj->getBase()->getZ();
+//    glBegin(GL_LINES);
+//        glColor3d(1,0,0);
+//        glVertex3d(state(0), state(1), state(2));
+//        glVertex3d(state(0)+x(0), state(1)+x(1), state(2)+x(2));
+
+//        glColor3d(0,1,0);
+//        glVertex3d(state(0), state(1), state(2));
+//        glVertex3d(state(0)+y(0), state(1)+y(1), state(2)+y(2));
+
+//        glColor3d(0,0,1);
+//        glVertex3d(state(0), state(1), state(2));
+//        glVertex3d(state(0)+y(0), state(1)+y(1), state(2)+y(2));
+//    glEnd();
+}
+
 Matrix4d GLWidget::ortographicMatrix(double far, double near, double left, double right, double top, double bottom)
 {
     Matrix4d M;
@@ -133,7 +226,7 @@ void GLWidget::mousePressEvent(QMouseEvent* event)
     if (event->button() == Qt::LeftButton){
         Vector6d ns;
 
-        double angX = countang++ * 2;
+        double angX = 0;//countang++ * 2;
         AngleAxisd rotX(angX * (M_PI / 180.0), Vector3d::UnitX());
         Vector3d p = rotX.toRotationMatrix() * 5*Vector3d::UnitX();
 
@@ -141,13 +234,15 @@ void GLWidget::mousePressEvent(QMouseEvent* event)
         AngleAxisd rotY(angY * (M_PI / 180.0), Vector3d::UnitY());
         p = rotY.toRotationMatrix() * p;
 
-        double angZ = 45; //- countang++*2;
+        double angZ = 90; //- countang++*2;
         AngleAxisd rotZ(angZ * (M_PI / 180.0), Vector3d::UnitZ());
         p = rotZ.toRotationMatrix() * p;
 
-        //ns << p, angX * (M_PI / 180.0), angY * (M_PI / 180.0), angZ * (M_PI / 180.0);
-        ns << 0, 0, 0, 0, 0, 0;
-        obj->iterationScheme(ns, 0.0001, 2);
+//        ns << p, angX * (M_PI / 180.0), angY * (M_PI / 180.0), angZ * (M_PI / 180.0);
+//        ns << 0, 2.5, 0, 0, 0, M_PI;
+        ns << 1+(M_SQRT2/2), 2+(M_SQRT2/2), 1, 0, 0, 0;
+        stateDesired = ns;
+        obj->iterationScheme(ns, 0.001, 1000);
         updateGL();
     }
 

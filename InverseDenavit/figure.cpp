@@ -13,6 +13,7 @@ Vector6d Figure::getState() const
 void Figure::draw(Matrix4d mv)
 {
     Joint *curr = this->base; //Guarda a junta que está sendo percorrida
+    //while (curr->getNext() != NULL){
     while (curr != NULL){
         curr->draw(mv);
         curr = curr->getNext();
@@ -233,9 +234,9 @@ void Figure::recalculateAxis()
         //O eixo x1 é a rotação do eixo x0 pelo joint angle theta1 no eixo z1
         AngleAxisd rot(curr->getAngle(), curr->getZ());
         tmpX = curr->getX();
-        //curr->setX(rot.toRotationMatrix()*prevX);
         curr->setOrigin(curr->getPrev()->getOriginNext());
         curr->setX(rot.toRotationMatrix()*curr->getPrev()->getX());
+        //curr->setX(rot.toRotationMatrix()*prevX);
         curr->setOriginNext(curr->getOrigin() + curr->getX());
         prevX = tmpX;
         //O eixo y1 é normalized(z1 cross x1)
@@ -265,17 +266,20 @@ void Figure::iterationScheme(Vector6d target, double tolerance, int maxSteps)
     flush(cout);
     int count = 1;
     VectorXd newParams(n-1);
-//    double normDiffPosition = (Vector3d(state(0),state(1),state(2)) - Vector3d(target(0),target(1),target(2))).norm();
+    double normDiffPosition = (Vector3d(state(0),state(1),state(2)) - Vector3d(target(0),target(1),target(2))).norm();
 //    double diffAngles = (state(3)-target(3))+(state(4)-target(4))+(state(5)-target(5))/3.;
-//    double diffMetric = max(normDiffPosition, diffAngles);
-    while (abs((state-target).norm()) > tolerance && count < maxSteps){
+    double diffMetric = normDiffPosition; //max(normDiffPosition, diffAngles);
+    while (diffMetric > tolerance && count < maxSteps) {
         cout << "Iteration " << count << endl;
-        cout << "Absolute difference: " << abs((state-target).norm()) << endl;
+        cout << "Absolute difference: " << diffMetric << endl;
         flush(cout);
         newParams = computeJointParameters(currParams, state, target);
         cout << "New joint parameters:\n" << newParams << endl;
         setParams(newParams);
+        currParams = newParams;
         calcStateVector();
+        normDiffPosition = (Vector3d(state(0),state(1),state(2)) - Vector3d(target(0),target(1),target(2))).norm();
+        diffMetric = normDiffPosition;
         count++;
     }
     cout << "======Ending iterations======" << endl;

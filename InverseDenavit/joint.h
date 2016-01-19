@@ -28,6 +28,7 @@ public:
     Joint();
     Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, double offset, double angle);
     Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, double offset, double angle, Vector3d origin, Vector3d originNext);
+    Joint(Vector3d x, Vector3d y, Vector3d z, double length, double twist, double offset, double angle, Vector3d origin, Vector3d originNext, Vector3d color);
 
     //Getters e setters
     Vector3d getX() const;
